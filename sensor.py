@@ -22,8 +22,14 @@ def update_temperature(temp_manager):
 
 def main():
     print("센서 매니저 초기화 중...")
-    imu = IMUManager()
+
+    print("Temp sensor reset")
     temp = TempSensorManager()
+    print("Suc Temp sensor reset")
+
+    print("IMU 초기화 시도...")
+    imu = IMUManager()
+    print("IMU 초기화 완료")
     
     # 1. 온도 센서를 읽는 백그라운드 스레드 시작
     # daemon=True로 설정하면 메인 프로그램(IMU 루프) 종료 시 같이 안전하게 죽습니다.

@@ -12,10 +12,10 @@ class IMUManager:
         
         # 2. 오프셋 설정
         self.offsets = {
-            0: (0.7, 0.5, -0.7),
-            1: (0.2, 0.4, -0.2),
-            2: (0.6, 0.4, -0.6),
-            3: (0.6, 0.2, 0.7)
+            0: (0.103, 0.063, 0.158),
+            1: (0.597, 0.255, 1.368),
+            2: (0.628, 0.339, -0.347),
+            3: (0.590, 0.247, -0.349)
         }
         
         # 3. 센서 초기화 및 매핑
@@ -24,10 +24,12 @@ class IMUManager:
         
         for ch in target_channels:
             try:
+                print(f"채널 {ch} 초기화 시도 중...")
                 sensor = adafruit_adxl34x.ADXL345(self.tca[ch])
                 self.sensors[ch] = sensor
-            except Exception:
-                pass
+                print(f"채널 {ch} 초기화 성공")
+            except Exception as e:
+                print(f"채널 {ch} 초기화 실패 에러: {e}")
                 
         time.sleep(0.01)
 
