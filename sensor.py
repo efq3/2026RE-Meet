@@ -1,3 +1,25 @@
+import time
+import json
+import threading
+from imu_sensor import IMUManager
+from temp_sensor import TempSensorManager
+
+# 전역 변수: 온도 스레드가 읽어온 최신 값을 저장해두는 공간
+latest_temp_data = {"status": "온도 초기화 중..."}
+
+def update_temperature(temp_manager):
+    """
+    백그라운드에서 계속 실행되며 온도 데이터만 전담해서 업데이트하는 함수 (느림)
+    """
+    global latest_temp_data
+    while True:
+        # 온도를 읽어오고(약 1~3초 소요) 전역 변수를 갱신함
+        data = temp_manager.get_data()
+        latest_temp_data = data
+        
+        # 너무 잦은 호출로 인한 1-Wire 버스 부하를 막기 위해 약간 대기
+        time.sleep(1)
+
 def main():
     print("센서 매니저 초기화 중...")
 
@@ -49,3 +71,6 @@ def main():
                 
     except KeyboardInterrupt:
         print(f"\n데이터 수집을 종료합니다. 저장된 파일: {log_filename}")
+
+if __name__ == "__main__":
+    main()
