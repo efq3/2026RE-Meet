@@ -17,6 +17,14 @@ master = mavutil.mavlink_connection(CONNECTION_STRING, baud=BAUD_RATE)
 master.wait_heartbeat()
 print("픽스호크와 정상적으로 연결되었습니다!")
 
+master.mav.request_data_stream_send(
+    master.target_system,
+    master.target_component,
+    mavutil.mavlink.MAV_DATA_STREAM_ALL,
+    10,
+    1
+)
+
 # 2. 수신한 데이터를 저장해둘 딕셔너리
 px4_data = {
     "flight_mode": "UNKNOWN",
