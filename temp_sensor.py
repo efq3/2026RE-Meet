@@ -38,7 +38,7 @@ class TempSensorManager:
             
             # 3. 측정된 값을 딕셔너리에 저장
             if temperature_c is not None:
-                sensor_data[sensor_name] = round(temperature_c, 1)
+                sensor_data[sensor_name] = round(temperature_c, 3)
             else:
                 sensor_data[sensor_name] = "error"
                 

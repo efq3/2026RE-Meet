@@ -51,9 +51,9 @@ class IMUManager:
                 
                 # 보정된 데이터를 딕셔너리에 저장
                 sensor_data[channel_name] = {
-                    "X": round(cal_x, 1),
-                    "Y": round(cal_y, 1),
-                    "Z": round(cal_z, 1)
+                    "X": round(cal_x, 3),
+                    "Y": round(cal_y, 3),
+                    "Z": round(cal_z, 3)
                 }
             except OSError:
                 sensor_data[channel_name] = "error"
