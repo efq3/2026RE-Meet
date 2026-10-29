@@ -26,6 +26,7 @@ class IMUManager:
             try:
                 print(f"채널 {ch} 초기화 시도 중...")
                 sensor = adafruit_adxl34x.ADXL345(self.tca[ch])
+                sensor.range = adafruit_adxl34x.Range.RANGE_16_G
                 self.sensors[ch] = sensor
                 print(f"채널 {ch} 초기화 성공")
             except Exception as e:
@@ -39,8 +40,11 @@ class IMUManager:
             return {"error": "연결된 센서가 하나도 없습니다."}
             
         sensor_data = {}
+
         for ch, sensor in self.sensors.items():
+
             channel_name = f"CH{ch}"
+            
             try:
                 raw_x, raw_y, raw_z = sensor.acceleration
                 off_x, off_y, off_z = self.offsets.get(ch, (0.0, 0.0, 0.0))
