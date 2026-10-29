@@ -9,7 +9,6 @@ def check_motor_rpm_status(command, m1_diff, m2_diff, m3_diff, m4_diff):
     if None in (m1_diff, m2_diff, m3_diff, m4_diff):
         return "모터 데이터 수신 대기 중... (통신 연결 확인 필요)"
 
-    # image.png 메모장에 적힌 RPY 모터 증감 규칙 정의
     rules = {
         'R+': ([1, 2], [3, 4]),
         'R-': ([3, 4], [1, 2]),
