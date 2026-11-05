@@ -1,0 +1,6 @@
+isas_portable/*.sh text eol=lf
+isas_portable/*.py text eol=lf
+isas_portable/*.json text eol=lf
+isas_portable/*.md text eol=lf
+isas_portable/*.cmd text eol=crlf
+isas_portable/web/* text eol=lf

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ISAS Live Monitor</title><link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <header><div><small>X8 / POWERTRAIN OBSERVATION</small><h1>ISAS <span>Live Monitor</span></h1></div><div id="connection" class="badge">연결 대기</div></header>
+  <section class="toolbar"><button id="baseline">현재 온도를 비교 기준으로 설정</button><button id="reset">새 시험 시작</button><a href="/api/log">원본 로그</a><a href="/api/logs.zip">시험 로그 전체 ZIP</a><span id="counter">0 packets</span></section>
+  <p id="notice" role="status">라즈베리파이 송신기를 실행하십시오. 수신 포트: TCP 8765</p>
+  <section class="overview"><div><small>비행 상태</small><strong id="flight">정보 없음</strong></div><div><small>판정 범위</small><strong>이상 후보 관찰</strong></div><div><small>계산 지표</small><strong>평균 제거 3축 RMS</strong></div><div><small>온도 기준</small><strong id="baselineState">미설정</strong></div></section>
+  <p class="explanation">연구용 초기 로직 · 임계값 검증 전 · 대역통과 필터 및 기체 운동 보정 미적용 · 실제 수집률을 기준으로 해석하십시오.</p>
+  <section id="arms" class="arms"></section>
+  <section class="plots"><article><h2>Temperature <span>°C</span></h2><canvas id="temperatureChart" aria-label="암대별 온도 추이"></canvas></article><article><h2>Motion RMS <span>m/s²</span></h2><canvas id="rmsChart" aria-label="암대별 평균 제거 RMS 추이"></canvas></article></section>
+  <div class="legend"><span style="--color:#ff6b6b">Arm 1</span><span style="--color:#4ecdc4">Arm 2</span><span style="--color:#ffd166">Arm 3</span><span style="--color:#7aa2ff">Arm 4</span></div>
+  <p class="explanation">그래프 가로축: 지상 수신 시간 · 수집률 계산: 원본 측정 timestamp · 최근 120초 표시 · RMS 세로축 최소 범위: 0~0.25 m/s²</p>
+  <details><summary>수신 품질 및 해석</summary><p>낮은 수집률의 데이터로 모터의 고주파 진동을 판정할 수 없습니다. 표시 RMS에는 기체 기동과 구조 진동이 함께 포함됩니다. 모든 암대가 함께 상승하면 상대 편차만으로 탐지되지 않을 수 있습니다.</p><p>Pixhawk 상태가 없거나 오래되면 진동 후보 판정을 보류합니다. 기울기·각속도가 큰 구간도 보류합니다. 온도 샘플 timestamp가 없으면 같은 값의 반복 수신만으로 센서 갱신 여부를 확인할 수 없습니다.</p><pre id="quality"></pre></details>
+  <footer id="logPath"></footer>
+</main>
+<script src="monitor.js"></script>
+</body></html>
