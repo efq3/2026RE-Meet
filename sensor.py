@@ -51,7 +51,7 @@ def main():
                 f.write(json_output + "\n")
                 f.flush()
                 
-                time.sleep(0.001) 
+                time.sleep(0.05) 
                 
     except KeyboardInterrupt:
         print(f"\n데이터 수집을 종료합니다. 저장된 파일: {log_filename}")

@@ -11,3 +11,4 @@ isas_portable/ssh_settings.json
 .isas_server.pid
 .matlab_px4_monitor.pid
 simulation/gazebo/*.jsonl
+px4_raw.jsonl
