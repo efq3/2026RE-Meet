@@ -1,0 +1,16 @@
+{
+  "window_s": 2.0,
+  "min_samples": 12,
+  "stale_s": 3.0,
+  "context_stale_s": 3.0,
+  "temperature_stale_s": 10.0,
+  "hold_s": 2.0,
+  "rms_relative_mps2": 0.15,
+  "temperature_relative_c": 5.0,
+  "temperature_high_c": 60.0,
+  "max_gyro_rad_s": 0.35,
+  "max_pitch_roll_deg": 15.0,
+  "require_flight_context": true,
+  "thresholds_validated": false,
+  "intended_band_hz": [5.0, 50.0]
+}

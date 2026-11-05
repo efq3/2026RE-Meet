@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+vibration_results/
+isas_portable/logs/
+isas_portable/pi_logs/
+isas_portable/*.log
+isas_portable/*_raw.jsonl
+isas_portable/demo_*.jsonl
+isas_portable/ssh_settings.json
+.isas_server.pid
+.matlab_px4_monitor.pid
+simulation/gazebo/*.jsonl
