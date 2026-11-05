@@ -33,6 +33,12 @@ def seconds(value):
 class Detector:
     def __init__(self, config):
         self.c = config
+        channels = config.get("imu_channels_by_arm", [f"CH{i}" for i in range(4)])
+        if not isinstance(channels, (list, tuple)) or len(channels) != 4 or not all(isinstance(ch, str) for ch in channels) or set(channels) != {f"CH{i}" for i in range(4)}:
+            raise ValueError("imu_channels_by_arm must contain CH0, CH1, CH2, CH3 exactly once")
+        self.imu_channels = tuple(channels)
+        self.active_imu_channels = self.imu_channels
+        self.input_kind = "imu"
         self.samples = [deque(maxlen=20000) for _ in range(4)]
         self.temps = [None] * 4
         self.temp_received = [None] * 4
@@ -81,10 +87,14 @@ class Detector:
         arm_data = packet.get("arms") if isinstance(packet.get("arms"), dict) else {}
         imu_data = packet.get("imu") if isinstance(packet.get("imu"), dict) else {}
         temp_data = packet.get("temperature") if isinstance(packet.get("temperature"), dict) else {}
+        # Real packets use physical sensor channels. Simulation CH numbers are
+        # already generated in logical arm order; explicit arms packets are too.
+        self.input_kind = "arms" if "arms" in packet else "imu"
+        self.active_imu_channels = tuple(f"CH{i}" for i in range(4)) if packet.get("simulation") is True else self.imu_channels
         for i in range(4):
             arm = arm_data.get(f"arm{i + 1}", {})
             arm = arm if isinstance(arm, dict) else {}
-            accel = arm.get("accel_mps2") if "arms" in packet else imu_data.get(f"CH{i}")
+            accel = arm.get("accel_mps2") if self.input_kind == "arms" else imu_data.get(self.active_imu_channels[i])
             a = vector(accel)
             if a is None:
                 self.invalid_samples += 1
@@ -159,7 +169,11 @@ class Detector:
             temp_fresh = self.temp_received[i] is not None and now - self.temp_received[i] <= self.c["temperature_stale_s"]
             if self.temp_timestamp[i] is not None and self.last_source_time[i] is not None:
                 temp_fresh = temp_fresh and 0 <= self.last_source_time[i] - self.temp_timestamp[i] <= self.c["temperature_stale_s"]
-            rows.append({"arm": i+1, "acceleration": samples[-1][1] if samples and fresh else None,
+            channel = self.active_imu_channels[i] if self.input_kind == "imu" else None
+            rows.append({"arm": i+1, "imu_channel":channel,
+                         "imu_number":int(channel[2:])+1 if channel is not None else None,
+                         "temperature_channel":f"S{i+1}" if self.input_kind == "imu" else None,
+                         "acceleration": samples[-1][1] if samples and fresh else None,
                          "rms": rms, "hz": fs, "nyquist_hz": fs/2 if fs else None,
                          "jitter_fraction": jitter, "gap_fraction": gap_fraction,
                          "max_interval_s": max_interval, "gap": gap, "ready": ready,
@@ -184,7 +198,10 @@ class Detector:
                 status = "maneuver" if maneuver else "disarmed" if armed is False else "context_missing"
             row.update({"relative_rms":rv,"relative_temperature":rt,"status":status,
                         "thermal_candidate":thermal or hot,"vibration_candidate":vib})
-        return {"arms":rows,"flight_context":self.context if context_fresh else {},
+        return {"arms":rows,
+                "imu_channels_by_arm":list(self.active_imu_channels) if self.input_kind == "imu" else None,
+                "configured_imu_channels_by_arm":list(self.imu_channels),
+                "flight_context":self.context if context_fresh else {},
                 "flight_context_source":self.context_source if context_fresh else None,
                 "context_fresh":context_fresh,"maneuver_known":maneuver_known,
                 "flight_eligible":flight_eligible,"baseline_set":self.baseline is not None,

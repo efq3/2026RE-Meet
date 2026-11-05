@@ -11,7 +11,7 @@ const cards = colors.map((color, i) => {
   const el = document.createElement("article");
   el.className = "arm";
   el.style.setProperty("--color", color);
-  el.innerHTML = `<h2>Arm ${i+1} / CH${i}</h2><div class="reading"></div><p class="rms"></p><p class="relative"></p><p class="rate"></p><p class="status"></p><p class="tempAge"></p>`;
+  el.innerHTML = `<h2>Arm ${i+1}</h2><div class="reading"></div><p class="rms"></p><p class="relative"></p><p class="rate"></p><p class="status"></p><p class="tempAge"></p>`;
   byId("arms").append(el);
   return el;
 });
@@ -68,6 +68,9 @@ function render(data){
   byId("notice").textContent=data.log_error?`로그 저장 실패: ${data.log_error}`:!live?"수신 데이터를 기다리는 중입니다. 송신 대상 노트북 IP와 TCP 포트를 확인하십시오.":candidate.length?`${candidate.map(a=>`Arm ${a.arm}`).join(", ")} 이상 후보를 확인하십시오. 원인은 별도 검증이 필요합니다.`:simulation?"가상 시험 데이터 수신 중입니다. 실기체 측정 결과가 아닙니다.":lowRate?"저속 데이터 수신 중: 고주파 모터 진동은 판단할 수 없습니다. RMS는 관측된 저주파 움직임으로 해석하십시오.":"데이터 수신 중입니다. 표시 지표와 이상 후보를 확인하십시오.";
   data.arms.forEach((a,i)=>{
     const el=cards[i];el.classList.toggle("alert",a.thermal_candidate||a.vibration_candidate);
+    el.querySelector("h2").textContent=a.imu_channel
+      ? `Arm ${a.arm} / IMU ${a.imu_number} (${a.imu_channel})`
+      : `Arm ${a.arm}`;
     el.querySelector(".reading").textContent=`${fmt(a.temperature,1)} °C`;
     el.querySelector(".rms").textContent=`RMS ${fmt(a.rms,3)} m/s²`;
     el.querySelector(".relative").textContent=`상대 RMS ${fmt(a.relative_rms,3)} / 상대 ΔT ${fmt(a.relative_temperature,1)} °C`;
@@ -80,7 +83,7 @@ function render(data){
     history.push(data);history=history.filter(p=>data.received_unix-p.received_unix<120).slice(-600);
     lastPackets=data.packets;
   }
-  byId("quality").textContent=JSON.stringify({input_ssh:data.ssh_status,metric:data.metric,context_fresh:data.context_fresh,maneuver_known:data.maneuver_known,invalid_lines:data.invalid_lines,invalid_samples:data.invalid_samples,timestamp_errors:data.timestamp_errors,sequence_gaps:data.sequence_gaps,stream_conflicts:data.stream_conflicts,sources:data.sources},null,2);
+  byId("quality").textContent=JSON.stringify({input_ssh:data.ssh_status,metric:data.metric,imu_channels_by_arm:data.imu_channels_by_arm,configured_imu_channels_by_arm:data.configured_imu_channels_by_arm,context_fresh:data.context_fresh,maneuver_known:data.maneuver_known,invalid_lines:data.invalid_lines,invalid_samples:data.invalid_samples,timestamp_errors:data.timestamp_errors,sequence_gaps:data.sequence_gaps,stream_conflicts:data.stream_conflicts,sources:data.sources},null,2);
   byId("logPath").textContent=`수신 원본 저장 위치: ${data.raw_log}`;
   plot("temperatureChart","temperature");plot("rmsChart","rms");
 }

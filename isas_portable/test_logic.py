@@ -10,7 +10,75 @@ from logic import Detector
 class LogicTests(unittest.TestCase):
     def setUp(self):
         self.config = json.loads(Path(__file__).with_name("config.json").read_text())
+        # Existing fixtures explicitly encode CH0..CH3 in logical arm order.
+        self.config["imu_channels_by_arm"] = [f"CH{i}" for i in range(4)]
         self.detector = Detector(self.config)
+
+    def test_physical_imu2_fault_is_reported_on_arm3_with_arm3_temperature(self):
+        config = json.loads(Path(__file__).with_name("config.json").read_text())
+        self.assertEqual(config["imu_channels_by_arm"], ["CH0", "CH2", "CH1", "CH3"])
+        detector = Detector(config)
+        for k in range(450):
+            t = k / 50
+            packet = self.packet(t)
+            if t >= 3:
+                packet["imu"]["CH1"]["X"] = 1.4 * math.sin(2 * math.pi * 7 * t)
+                packet["temperature"]["S3"] = 33
+            detector.ingest(packet, t)
+            result = detector.snapshot(t)
+            if k == 149:
+                detector.set_baseline(t)
+        self.assertEqual([a["imu_channel"] for a in result["arms"]], ["CH0", "CH2", "CH1", "CH3"])
+        self.assertEqual([a["imu_number"] for a in result["arms"]], [1, 3, 2, 4])
+        self.assertEqual(result["arms"][2]["status"], "compound_candidate")
+        self.assertFalse(result["arms"][1]["vibration_candidate"])
+        self.assertEqual(result["arms"][1]["temperature"], 25)
+        self.assertEqual(result["arms"][2]["temperature"], 33)
+
+    def test_missing_physical_ch1_only_removes_arm3_acceleration(self):
+        config = copy.deepcopy(self.config)
+        config["imu_channels_by_arm"] = ["CH0", "CH2", "CH1", "CH3"]
+        detector = Detector(config)
+        packet = self.packet(0)
+        packet["imu"]["CH1"] = "error"
+        detector.ingest(packet, 0)
+        arms = detector.snapshot(0)["arms"]
+        self.assertIsNone(arms[2]["acceleration"])
+        self.assertTrue(all(arms[i]["acceleration"] is not None for i in (0, 1, 3)))
+
+    def test_explicit_arm_packets_are_not_remapped(self):
+        config = copy.deepcopy(self.config)
+        config["imu_channels_by_arm"] = ["CH0", "CH2", "CH1", "CH3"]
+        detector = Detector(config)
+        packet = self.packet(0)
+        packet.pop("imu")
+        packet["arms"] = {
+            f"arm{i+1}": {"accel_mps2": {"X": i+1, "Y": 0, "Z": 9.8}}
+            for i in range(4)
+        }
+        detector.ingest(packet, 0)
+        arms = detector.snapshot(0)["arms"]
+        self.assertEqual([a["acceleration"][0] for a in arms], [1, 2, 3, 4])
+        self.assertTrue(all(a["imu_channel"] is None for a in arms))
+
+    def test_simulation_channels_remain_in_logical_arm_order(self):
+        config = copy.deepcopy(self.config)
+        config["imu_channels_by_arm"] = ["CH0", "CH2", "CH1", "CH3"]
+        detector = Detector(config)
+        packet = self.packet(0)
+        packet["simulation"] = True
+        for i in range(4):
+            packet["imu"][f"CH{i}"]["X"] = i + 1
+        detector.ingest(packet, 0)
+        arms = detector.snapshot(0)["arms"]
+        self.assertEqual([a["acceleration"][0] for a in arms], [1, 2, 3, 4])
+        self.assertEqual([a["imu_channel"] for a in arms], ["CH0", "CH1", "CH2", "CH3"])
+
+    def test_duplicate_imu_mapping_is_rejected(self):
+        config = copy.deepcopy(self.config)
+        config["imu_channels_by_arm"] = ["CH0", "CH1", "CH1", "CH3"]
+        with self.assertRaises(ValueError):
+            Detector(config)
 
     def packet(self, t, fault=False):
         return {"timestamp":1000+t,"imu":{f"CH{i}":{"X":(1.4 if fault and i==2 else 0.03)*math.sin(2*math.pi*7*t),"Y":-1.5,"Z":9.8} for i in range(4)},

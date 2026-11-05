@@ -11,6 +11,8 @@
 
 원본 수신·저장률은 입력률을 따르며, 특징값·웹 전송 주기는 계산 시간에 0.2초 대기가 더해져 약 5 Hz이다. 수집률은 센서 timestamp로 계산한다.
 
+실기체 입력은 `config.json`의 `imu_channels_by_arm`을 적용한다. 사용자 지정 매핑은 Arm 1=IMU1/CH0, Arm 2=IMU3/CH2, Arm 3=IMU2/CH1, Arm 4=IMU4/CH3이다. 온도는 기존 S1~S4 순서를 유지한다. 원본은 수정하지 않고 계산·특징·화면만 암대 순서로 대응시킨다. 자세한 정의는 [SENSOR_MAPPING.md](SENSOR_MAPPING.md)를 따른다.
+
 ## 평균 제거 3축 RMS
 
 각 암대 i의 최근 2초 구간에서 축별 평균을 빼고 제곱합의 평균에 제곱근을 취한다.

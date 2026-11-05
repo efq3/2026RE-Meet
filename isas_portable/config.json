@@ -1,4 +1,5 @@
 {
+  "imu_channels_by_arm": ["CH0", "CH2", "CH1", "CH3"],
   "window_s": 2.0,
   "min_samples": 12,
   "stale_s": 3.0,

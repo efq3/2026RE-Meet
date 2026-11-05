@@ -35,13 +35,17 @@ class ServerTests(unittest.TestCase):
                     }
                     state.ingest(packet, "test")
                 result = state.snapshot()
+                expected_rms = [1, 3, 2, 4]
                 for i, arm in enumerate(result["arms"]):
-                    self.assertAlmostEqual(arm["rms"], i + 1, delta=0.02)
+                    self.assertAlmostEqual(arm["rms"], expected_rms[i], delta=0.02)
                     self.assertEqual(arm["temperature"], 25 + i * 0.5)
                     self.assertAlmostEqual(arm["hz"], 125)
                     self.assertEqual(arm["status"], "context_missing")
                 self.assertFalse(result["baseline_set"])
                 self.assertFalse(result["flight_eligible"])
+                state.raw.flush()
+                raw_packet = json.loads(state.raw_path.read_text(encoding="utf-8").splitlines()[-1])
+                self.assertEqual(raw_packet["imu"], packet["imu"])
             finally:
                 state.raw.close(); state.audit.close(); state.features.close()
 

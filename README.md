@@ -2,6 +2,8 @@
 
 ISAS (Integrated Status Assessment System, 통합 상태 평가 시스템)는 X8 기체의 암대별 온도와 가속도를 수집하고, 지상 PC에서 3축 RMS를 계산하여 숫자와 그래프로 표시하는 연구용 시스템입니다.
 
+실기체 암대 1~4의 IMU 순서는 **IMU1, IMU3, IMU2, IMU4**입니다. 계산 설정과 라벨 정의는 [센서 매핑](isas_portable/SENSOR_MAPPING.md)에 기록합니다.
+
 ```text
 암대 IMU·온도 + Pixhawk
   → 라즈베리파이: 센서 수집·원본 저장·TCP 송신
